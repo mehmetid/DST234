@@ -1,0 +1,44 @@
+---
+title: "Summer_2022_Research"
+author: "Dijone Mehmeti"
+date: "5/20/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+install.packages("devtools")
+library(devtools)
+library(shiny)
+library(neonUtilities)
+install.packages("NEONSoils")
+library(NEONSoils)
+library(usethis)
+
+```
+
+```{r}
+
+devtools::install_github("jmzobitz/NEONSoils", build = TRUE, build_opts = c("--no-resave-data", "--no-manual"),force=TRUE)
+
+acquire_neon_data(site_name ="SJER", start_date = "2020-06", end_date = "2020-06", file_name = "my-file-2020-06.Rda")
+
+```
+
+```{r}
+out_fluxes_jan <- compute_neon_flux("my-file-2020-06.Rda")
+
+usethis::create_github_token()
+
+gitcreds::gitcreds_set()
+
+use_git_config(user.name = "mehmetid", user.email = "mehmetid@augsburg.edu")
+
+usethis::git_default_branch_configure()
+
+```

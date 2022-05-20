@@ -1,0 +1,74 @@
+---
+title: "HOMEWORK12"
+author: "Dijone Mehmeti"
+date: "3/30/2022"
+output: html_document
+---
+```{r}
+
+library(tidyverse)
+library(maps)
+library(mapdata)
+
+glimpse(us.cities)
+
+```
+
+#Problem 1
+
+For this question you will be investigating the data frame us.cities.
+
+What are the variables in this data frame?  Briefly describe each variable.
+
+- The variables in this data frame are: name, country.etc, pop, lat, long, capital. The name represents the name of the cities in the US ordered alphabetically, the country.etc represents the abbreviation of the states that the cities are located in, pop represents the approximate population as at January 2006, lat represents the latitude, long the longtitude of those cities, and capital represents the capital status indication (0 for non-capital, 1 for capital, 2 for state capital) 
+
+Next, filter the data frame for cities only in Minnesota and Wisconsin.
+
+Then generate a static map that shows the locations of these cities for the MN-WI region, where the point is scaled by the size of the population. Included in the map should be the county borders. Your resulting map should also include an aesthetic to differentiate between cities of different states.
+
+Inspired by class work, collaborated with Ly and Ridwan
+
+```{r}
+a <- us.cities%>%
+  filter(country.etc == "MN" | country.etc == "WI")
+
+
+glimpse(a)
+
+b <- map_data("county") %>%
+  filter(region == "minnesota" | region == "wisconsin")
+
+
+ggplot() + geom_point(data = a, aes(x = long, y = lat, size = pop), color = "purple") + coord_fixed(1.3)+ geom_polygon(data = b, aes(x=long, y = lat, group = group), fill = NA, color = "brown") 
+```
+#Problem 2
+
+Create a static chloropleth map for Minnesota, North and South Dakota, Wisconsin, and Iowa where the colors of the states is an aesthetic for the population. To do this successfully you will need to:
+Define a map_data frame for these 5 states.
+Create a separate data frame for the population of these states.
+Join this data frame to your map_data  Helpful hint: When you do map_data for the states, the “region” is typically the state name in lower case letters (i.e. “minnesota” and not “Minnesota”).  Use the same “region” as the key in your join command.
+
+Collaborated with Ly, class notes
+
+```{r}
+usa <- map_data("state")
+
+state_x77_df <- state.x77 %>%
+  data.frame() %>%
+  rownames_to_column(var = "state") %>%
+  mutate(state = str_to_lower(state))
+  
+states_joined <- inner_join(usa, state_x77_df, by=c("region"="state")) %>% filter(region == "minnesota" | region == "north dakota" | region == "south dakota" | region == "wisconsin" | region == "iowa")
+  
+ggplot() +
+  geom_polygon(data = states_joined, aes(x = long, y = lat, group = group, fill = Population)) + coord_fixed(ratio = 1.3)
+  
+```
+#Problem 3
+
+The documentaries had to do with racial segregation in neighborhoods, specifically in Minneapolis and the state of Missouri.They had to do with the segregation of the African-American communities from neighborhoods where white people would live. I remember a case saying that immigrants from Europe that came from Sweden or Norway would be part of those white neighborhoods with no problem, however, if immigrants from Africa who hold the same status as the ones from Europe or Africa would attempt to be part of those neighborhoods they would be rejected. Another thing that caught my attention in the documentaries is that when a neighborhood was overly populated with white people that concept was completely normalized for them, meaning that it wouldn't trigger them to think that their neighborhood has no diversity even though they live in the United States, known as a melting cultural pot, but in fact it would trigger them if a black family would be part of the neighborhood. 
+
+- Some things I learned from the documentaries is that a famous writer that lived in Minneapolis during her early life moved to New York to find more support regarding her career because Minneapolis was unable to give that to her because she was part of the black community. But, when she moved to New York she became the first black journalist to be part of a white newspaper. 
+- Something else I learned is that Minneapolis in general seemed to be a city that supported racial segregation in neighborhoods for a longer period of time, being based on the case with the one black family that moved into a white neighborhood and the parents of the other kids in the neighborhood wouldn't play with the new family's kids because they were black.
+- The city of Austin in Texas seemed to be a target for the people to populate the area with the black community.
+- Also there was a big difference when it came to white people buying houses where they wouldn't need to put a down payment and they had lower interest rates, while black people had to put a down payment to buy a house along with higher interest rates.

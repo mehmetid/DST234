@@ -1,0 +1,79 @@
+---
+title: "Mini-Project 4"
+author: "Dijone Mehmeti"
+date: "4/15/2022"
+output: prettydoc::html_pretty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(maps)
+library(mapdata)
+library(leaflet) 
+library(leaflet.extras) 
+library(leaflet.providers)
+library(readr)
+library(sf)     
+
+```
+
+Show the map of Minneapolis and its neighborhoods with the Police Incidents and see how many fires were confirmed in those areas in 2022. 
+
+- The question I was trying to answer was to first find the Police Incidents in the neighborhoods of Minneapolis in 2022, and the main goal was to see how many of those incidents were fires that were confirmed in those areas for the same year. Therefore, the map is titled "Fires Confirmed in Minneapolis 2022". The theme palette I picked for this map to represent the fires in those neighborhoods is called "Reds" since the colors match with the information that is being displayed. Based on the data we have, the fires that were confirmed the most with a confirmation number up to 427, were in the neighborhood Downtown West where the most police incidents occurred as well. This area is also displayed with a darker shade of red to represent the concentration of those fires and differentiate it with the other neighborhoods on the map. The second most reported neighborhood for its fires was Whittier neighborhood with up to 326 fires in that area. Both of those neighborhoods that hold the highest number of fires confirmed along with police incidents happen to be right in the center of Minneapolis, which is a fact that connects with Redlining and Mapping Inequality areas that we have learned in the previous classes in Minneapolis, that all of it makes sense to be connected along history. Furthermore, the neighborhood with the lowest number of fires confirmed in Minneapolis is the Humboldt Industrial Area with only 1 fire confirmation for this year. Again, going back to what I mentioned above about redlining, the Humboldt Industrial Area is a neighborhood located in the suburbs of Minneapolis which had not much to do with the mapping inequality of the years 1937 and above, and makes sense why those buildings are not as affected or risked by fires to this day. Lastly, I wanted to check the area where Augsburg University is located and find out the concentration of fires confirmed. The neighborhood that represents our campus is close to Elliot Park neighborhood with about 121 fires. Also, another analysis made on the map is that the suburbs of Minneapolis have such a lower amount of police incidents and fires confirmed compared to the center of Minneapolis or the downtown area. Collectively, I don't think we find this information surprising because for many years now it has been confirmed that the most crimes, fires, police incidents tend to happen closer to the center of a metropolitan city like Minneapolis is. 
+
+Inspired by: Shape file activity, Homework 13, class work
+
+```{r}
+Police <- st_read(dsn = "Police_Incidents_2022", layer = "Police_Incidents_2022")%>%select(-geometry)
+
+Police%>%
+  leaflet()%>%
+  addTiles()%>%
+  addWebGLHeatmap(lng=~centerLong, lat =~centerLat, size = 2000)
+
+Police%>%
+  leaflet()%>%
+  addTiles()%>%
+  addCircles(lng = ~centerLong,
+             lat = ~centerLat,
+             color = "purple",
+             radius = 1.5)
+
+totFires = Police%>%
+  group_by(neighborho)%>%
+  summarize(F=n())%>%
+  arrange(desc(F))%>%
+  na.omit()
+
+neighbors <- st_read(dsn = "Neighborhoods", layer = "Neighborhoods")
+
+Fires_merged <- neighbors%>%
+  left_join(as_tibble(totFires), by = c("BDNAME" = "neighborho"))
+
+max_fires <- max(totFires$F)
+Fires_palette <- colorNumeric(palette = "Reds",
+                              domain = c(0,max_fires))
+
+Fires_merged%>%
+  leaflet()%>%
+  addTiles()%>%
+  addPolygons(weight = 1.5,
+              fillOpacity = 0.8,
+              color = 'green',
+              fillColor =~Fires_palette(F),
+              popup = ~paste(BDNAME, "<br>", F))%>%
+  addLegend(pal = Fires_palette,
+            values = ~F,
+            opacity = 0.8,
+            title = "Fires Confirmed in Minneapolis 2022"
+            )
+  
+
+
+
+```
+

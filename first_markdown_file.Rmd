@@ -1,0 +1,108 @@
+---
+title: "THIS IS YOUR TITLE"
+author: "ENTER YOUR NAME HERE"
+date: "PUT A DATE IN HERE"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup}
+knitr::opts_chunk$set(echo=TRUE)
+library(mdsr)
+library(tidyverse)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+# Section titles are here (you need one hashtags)
+## Subsections have 2 hashtags
+### Subsubsections have 1 hashtag
+
+- Italics: wrap your phrase with one star (\*): I *love* making DST 234!
+- Bold: wrap your phrase with two stars (\*\*): The **quiz** was awesome fun!
+
+You can wrap `R` commands in "chunks", using the syntax below
+
+```{r}
+glimpse(mpg)
+```
+
+### Including plots
+
+You can also embed plots, for example:
+
+```{r}
+# This is my first ggplot!
+ggplot(data = mpg) +
+  geom_point( aes(x=displ, y=hwy) ) 
+```
+
+Compare these two plots:
+```{r}
+
+# Plot 1
+ggplot(data = mpg) +
+  geom_point( aes(x=displ, y=hwy), size = 5 ) 
+
+# Plot 2
+ggplot(data = mpg) +
+  geom_point( aes(x=displ, y=hwy, size = displ ) ) 
+
+```
+
+## YOUR TURN
+Using the `mpg` data frame with `x=displ, y=hwy`, generate the following ggplots (each item is a separate plot).  You can always see the first few rows of the data frame by typing `glimpse(mpg)` at the console (as we did above), or `?mpg` for the documentation on the particular data frame.  I've included the started code from earlier that you need to then modify.
+
+
+a. A plot that uses color to distinguish the class of the car.
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+b. A plot that makes all the points red.
+```{r}
+ 
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+c. A plot that makes all the shapes to be filled triangles.
+(*What would it be if the shape was just a triangle with a border?*)
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+d. A plot that makes all the points to be 3 mm in size (that is you will need `size=3`).
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+e. A plot that makes all the points red, makes all the shapes filled triangles, and the size to be three.
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+f. A plot that uses color to distinguish the class of the car, and makes all of the points filled squares.
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+g. A plot that uses shapes to distinguish the class of the car, and color to distinguish the fuel type.
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+h. One other aesthetic for `geom_point` is `alpha`, which is transparency on a scale from 0 to 1. Can you make a ggplot that from the `mpg` data frame that incorporates the aesthetics of `alpha, color, shape, size`?
+```{r}
+ggplot(data = mpg, aes(x=displ, y=cty) ) + 
+  geom_point() 
+```
+
+

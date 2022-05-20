@@ -1,0 +1,181 @@
+---
+title: "Functional Programming"
+author: "Dijone Mehmeti"
+date: "4/11/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(mosaic)
+library(broom)
+library(zoo) 
+
+```
+
+```{r}
+superior <- read_csv('https://www.glerl.noaa.gov/data/ice/daily/old/sup.csv')
+
+glimpse(superior)
+
+plot(superior$`1973`)
+
+max(superior$`1973`,na.rm=TRUE)
+```
+
+```{r}
+max_ice_cover <- superior %>% 
+  select(-"...1",-"jday...51",-Average,-Dates) %>% # Let's remove some of the columns not needed
+  map_df(max,na.rm=TRUE) 
+```
+
+```{r}
+max_ice_cover_smoothed <- max_ice_cover %>% 
+  pivot_longer(cols=everything(),names_to="year",values_to="ice_cover") %>%
+  mutate(year=as.numeric(year)) %>%  # Convert year to a numeric value
+  zoo::rollmean(k=5) %>% # The k=5 signifies how many places we take in our rolling mean
+  as_tibble()  # Make this into a data frame
+
+```
+
+```{r}
+lm(ice_cover~year,data=max_ice_cover_smoothed) %>%
+  summary()
+
+max_ice_cover_smoothed %>%
+  ggplot(aes(x=year,y=ice_cover)) +
+  geom_point() +
+  geom_smooth(method="lm")
+
+lm(ice_cover~year,data=max_ice_cover_smoothed) %>%
+  broom::tidy()
+
+```
+
+```{r}
+median(superior$`1973`,na.rm=TRUE)
+mean(superior$`1973`,na.rm=TRUE)
+
+filtered_superior <- superior %>%
+  select(`1973`) %>%
+  filter(`1973`>0)
+
+median(filtered_superior$`1973`,na.rm=TRUE)
+mean(filtered_superior$`1973`,na.rm=TRUE)
+
+mosaic::favstats(filtered_superior$`1973`)
+
+```
+
+```{r}
+superior_all_filtered <- superior %>% 
+  select(`1973`:`2019`) %>% 
+  filter(across(.cols=everything(),~(.x>0))) # The . is a placeholder
+
+superior_stats <- superior_all_filtered %>% 
+  map(mosaic::fav_stats) 
+
+superior_stats_all <- superior_stats %>%
+  bind_rows(.id="year") %>%   # This tells us what to name things
+  mutate(year=as.numeric(year))
+
+glimpse(superior_stats_all)
+
+
+superior_stats_smoothed <- superior_stats_all %>%
+  map_df(zoo::rollmean,k=5)  # Smooth out to a 5 year rolling mean
+
+superior_nested <- superior_stats_smoothed %>%
+  select(-n,-missing,-sd) %>%
+  pivot_longer(cols=c("min":"mean"),names_to="fav_stat",values_to="value") %>%
+  group_by(fav_stat) %>%
+  nest()
+
+superior_nested %>%
+  mutate(lm_fit = map(data,~lm(value ~ year,data=.x)))  # The .x acts as a place holder
+
+```
+
+```{r}
+
+superior_nested %>%
+  mutate(lm_fit = map(data,~lm(value ~ year,data=.x )),
+         lm_summary = map(lm_fit,~broom::tidy(.x))) %>%
+  select(fav_stat,lm_summary) %>%
+  unnest(cols=c(lm_summary)) %>%
+  filter(term=='year')
+
+
+superior %>% 
+  select(`1973`:`2019`) %>% 
+  filter(across(.cols=everything(),~(.x>0))) %>% # The .x is a placeholder
+  map(mosaic::fav_stats) %>%
+  bind_rows(.id="year") %>%
+  mutate(year=as.numeric(year)) %>%
+  map_df(zoo::rollmean,k=5) %>%
+  select(-n,-missing,-sd) %>%
+  pivot_longer(cols=c("min":"mean"),names_to="fav_stat",values_to="value") %>%
+  group_by(fav_stat) %>%
+  nest() %>%
+  mutate(lm_fit = map(data,~lm(value ~ year,data=.x )),
+         lm_summary = map(lm_fit,~broom::tidy(.x))) %>%
+  select(fav_stat,lm_summary) %>%
+  unnest(cols=c(lm_summary)) %>%
+  filter(term=='year')
+
+```
+
+```{r}
+fit_lakes <- function(lake_data) {
+  
+  fit_data <-
+    lake_data %>% select(`1973`:`2019`) %>%  # Remove extraneous columns
+    filter(across(.cols=everything(),~(.x>0))) %>% # The .x is a placeholder
+    map(mosaic::fav_stats) %>%  # Do the summary stats on the data
+    bind_rows(.id="year") %>%   # Bind everything up by the year
+    mutate(year=as.numeric(year)) %>%
+    map_df(zoo::rollmean,k=5) %>%
+    select(-n,-missing,-sd) %>%
+    pivot_longer(cols=c("min":"mean"),names_to="fav_stat",values_to="value") %>%
+    group_by(fav_stat) %>%  # Nest by groups!
+    nest() %>%  
+    mutate(lm_fit = map(data,~lm(value ~ year,data=.x )),
+         lm_summary = map(lm_fit,~broom::tidy(.x))) %>%
+  select(fav_stat,lm_summary) %>%  # Take the list columns we need
+  unnest(cols=c(lm_summary)) %>%  # Unnest
+  filter(term=='year')  # Filter out the slope coefficient
+
+
+return(fit_data)
+
+}
+
+fit_lakes(superior)
+
+superior <- read_csv('https://www.glerl.noaa.gov/data/ice/daily/old/sup.csv') 
+michigan <- read_csv('https://www.glerl.noaa.gov/data/ice/daily/old/mic.csv') 
+huron <- read_csv('https://www.glerl.noaa.gov/data/ice/daily/old/hur.csv') 
+erie <- read_csv('https://www.glerl.noaa.gov/data/ice/daily/old/eri.csv')
+ontario <- read_csv('https://www.glerl.noaa.gov/data/ice/daily/old/ont.csv') 
+
+great_lakes <- list(superior=superior,
+                    michigan=michigan,
+                    huron=huron,
+                    erie=erie,
+                    ontario=ontario)
+
+lake_results <- great_lakes %>%
+  map(fit_lakes) %>%
+  bind_rows(.id="lake")
+
+lake_results %>%
+  ggplot(aes(x=lake,y=abs(estimate*10))) + 
+  geom_bar(stat="identity") +
+  facet_wrap(~fav_stat) +
+  ylab("Loss rate (% ice / decade)")
+
+```

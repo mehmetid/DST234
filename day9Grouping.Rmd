@@ -1,0 +1,123 @@
+---
+title: "Data Wrangling: Summarizing Groups"
+output: html_document
+
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE)
+```
+
+In this activity, we will continue to develop our data transformation skills by learning how to use the `group_by()` function in conjunction with the `summarize()` verb that we learned previously. 
+
+```{r, message=FALSE}
+library(tidyverse)
+library(babynames)
+```
+
+**Goal**: by the end of this activity, you will be able to use `group_by()` to perform summary operations on groups. 
+
+## Summarization with `group_by()` 
+
+
+  
+  1. What are the top 10 most popoular years for the name Jackie?
+  
+
+How would you do this? You could, of course, scan the data visually:
+
+```{r}
+babynames %>%
+  filter(name == "Jackie") 
+  
+```
+
+But this is very inefficient and does not provide an exact solution. 
+
+The key to solving this problem is to recognize that we need to collapse the **two** rows corresponding to each assigned sex in each year into a single row that contains the information for both sexes (this is the `group_by()` part). Unfortunately, there is no way for `R` to know what to compute its own -- we have to tell it (this is the `summarize()` part). 
+
+The `group_by` function specifies a variable on which the data frame will be collapsed. Each row in the result set will correspond to one unique value of that variable. In this case, we want to first group by `sex` and then `year`. [This is sometimes called "rolling up" a data set.]
+
+```{r}
+babynames %>%
+  filter(name == "Jackie") %>%
+  group_by(year)
+```
+
+This doesn't actually do much, since we haven't told `R` what to compute. `summarize()` takes a list of definitions for columns you want to see in the result set. The key to understanding `summarize()` is to note that it operates on vectors (which may contain many values), but it **must return a single value**. [Why?] Thus, the variables defined by the arguments to `summarize()` are usually *aggregate* functions like `sum()`, `mean()`, `length()`, `max()`, `n()`, etc.
+
+```{r}
+babynames %>%
+  filter(name == "Jackie") %>%
+  group_by(year) %>%
+  summarize(N = sum(n)) %>%
+  arrange(desc(N)) %>%
+  top_n(10)
+```
+
+Notice how we used the command `top_n` to return the top 10 values of the dataset.
+
+2. Which year had the highest number of births?
+
+1961 - 5567
+
+1957 - 4200007
+
+```{r}
+# Enter your solution here as a pipe
+babynames%>%
+  group_by(year)%>%
+  summarize(num_births= sum(n))%>%
+  arrange(desc(num_births))%>%
+  top_n(1)
+```
+
+3. In a single pipeline, compute the earliest and latest year that each name appears?
+
+SAMPLE SOLUTION:
+
+```{r}
+# Enter your solution here as a pipe
+babynames%>%
+  group_by(name)%>%
+  summarize(earliest = min(year),
+            latest = max(year))
+```
+
+4. Some names that have been assigned in all 138 years. How many names for M and F babies are there?
+
+SAMPLE SOLUTION:
+
+```{r}
+babynames%>%
+  group_by(sex, name)%>%
+  summarize(num_appearance = n())%>%
+  filter(num_appearance == 138)%>%
+  
+# Enter your solution here as a pipe
+```
+
+6. It seems like there is more diversity of names now than in the past. How have the number of names used changed over time? Has it been the same for F and M babies? 
+
+SAMPLE SOLUTION:
+
+```{r}
+babynames%>%
+  group_by(year, sex)%>%
+  summarize(tot_names = n())
+# Enter your solution here as a pipe
+```
+
+
+7. Find the most popular names between 2000 and 2010. 
+
+SAMPLE SOLUTION:
+
+```{r}
+babynames%>%
+  filter(year >= 2000 & year < 2010)%>%
+  group_by(name)%>%
+  summarize(num_births = sum(n))%>%
+  arrange(desc(num_births))
+# Enter your solution here as a pipe
+```

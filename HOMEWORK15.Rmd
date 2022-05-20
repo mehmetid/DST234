@@ -1,0 +1,211 @@
+---
+title: "HOMEWORK15"
+author: "Dijone, Ly, Ridwan"
+date: "4/21/2022"
+output: prettydoc::html_pretty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(tidyverse)
+library(mdsr)
+library(mclust)
+
+```
+#Problem 1
+
+Course evaluation completed.
+
+
+#Problem 2
+
+Read Chapters 10 - 12 in your textbook.  Of the techniques discussed in these chapters, explain (and be specific) which machine learning techniques you envision using most in your career.
+
+- I envision using the most the supervised machine learning technique, because I like to include logic into the research that I am working on, or simply I want to connect that output to something more fixed or logical rather than an output that is unmeasured. For example, the DNA project seemed very interesting and drew my attention, however regarding the output I want to get at the end, I would prefer to work in a project where the final output is connected more to logic rather than not having a direct measurement of where each organism fits on the “true” evolutionary tree. But, I would always want to try it, because I think being part of the experience could change my mind and make me enjoy the more broad or unmeasured outputs. 
+
+- Regression: I can definitely see myself using linear regression as it helps predict or explain certain things using previous data
+
+- Dimension reduction: while working with data this technique would be used a lot because I will be needing to clean up the data and get rid of unimportant things. 
+
+- Cluster: I believe I would using clustering a lot because grouping the data  is important and I think clustering would be helpful
+
+
+
+#Problem 3
+
+The SAT_2010 dataset contains information about SAT scores (?SAT_2010). In class we saw how k means clustering broke the states up into two groups, but perhaps a confounding variable was the percentage of students taking the SAT. Re-run the analysis, but this time use the total SAT score and the pupil to teacher ratio in your clustering. Are there any interesting trends you can find from the data?
+
+- A high score does not indicate a teacher's ratio. Some states have a high score but a low teacher ratio, while others have a low score but a high teacher ratio.
+
+
+
+```{r}
+SAT_2010 %>%
+  ggplot(aes(x = expenditure, y = total)) +
+  geom_point()
+
+SAT_clusts <- SAT_2010 %>%
+  select(total,expenditure) %>% 
+  kmeans(centers = 2) %>%  
+  fitted("classes") %>%  
+  as.character() 
+
+SAT_mutated <- SAT_2010 %>%
+  mutate(cluster = SAT_clusts)
+
+SAT_mutated %>%
+  ggplot(aes(x = expenditure, y = total)) +
+  geom_point(aes(shape = cluster, color = sat_pct)) 
+
+
+```
+
+#Problem 4
+
+Building on the example of k-means clustering by latitude and longitude:
+
+a) Change the number of clusters from 6 to 2. What do you notice about the map?
+
+- We are left with only two clusters that represent two colors for all continents. The clusters divide the world map in half. 
+
+
+```{r}
+### EXAMPLE 1: Clustering by longitude and latitude
+# Let's look at the 4000 largest cities - we will be re-using this data frame
+big_cities <- world_cities %>%
+  arrange(desc(population)) %>%
+  head(4000)
+
+glimpse(big_cities)
+
+# Now we do a 6-means cluster.
+city_clusts <- big_cities %>%
+  select(longitude, latitude) %>% # Variables we are clustering
+  kmeans(centers = 2) %>%
+  fitted("classes") %>%
+  as.character()
+
+# Add the clusters onto the big_cities data frame
+big_cities_clust <- big_cities %>%
+  mutate(cluster = city_clusts)
+
+# Then we plot the clusters
+big_cities_clust %>%
+  ggplot(aes(x = longitude, y = latitude)) +
+  geom_point(aes(color = cluster), alpha = 0.5)  +
+  scale_color_brewer(palette = "Set2")
+
+
+
+```
+
+b) Try 2 more examples of clustering (perhaps cap the upper limit on the number of clusters to 10). Are there any interesting geographic sortings?
+
+- There are different representations of the map when we have 8 or 10 clusters, meaning that the shape of the world map would change. When we have 10 clusters, number 10 is the second one in order while 8 and 9 are not represented by a color at all. For the map that has 8 clusters, it seems like the clusters are placed in order based on the size that that color represents. 
+
+
+```{r}
+### EXAMPLE 1: Clustering by longitude and latitude
+# Let's look at the 4000 largest cities - we will be re-using this data frame
+big_cities <- world_cities %>%
+  arrange(desc(population)) %>%
+  head(4000)
+
+glimpse(big_cities)
+
+# Now we do a 6-means cluster.
+city_clusts <- big_cities %>%
+  select(longitude, latitude) %>% # Variables we are clustering
+  kmeans(centers = 10) %>%
+  fitted("classes") %>%
+  as.character()
+
+# Add the clusters onto the big_cities data frame
+big_cities_clust <- big_cities %>%
+  mutate(cluster = city_clusts)
+
+# Then we plot the clusters
+big_cities_clust %>%
+  ggplot(aes(x = longitude, y = latitude)) +
+  geom_point(aes(color = cluster), alpha = 0.5)  +
+  scale_color_brewer(palette = "Set2")
+
+```
+
+```{r}
+### EXAMPLE 1: Clustering by longitude and latitude
+# Let's look at the 4000 largest cities - we will be re-using this data frame
+big_cities <- world_cities %>%
+  arrange(desc(population)) %>%
+  head(4000)
+
+glimpse(big_cities)
+
+# Now we do a 6-means cluster.
+city_clusts <- big_cities %>%
+  select(longitude, latitude) %>% # Variables we are clustering
+  kmeans(centers = 8) %>%
+  fitted("classes") %>%
+  as.character()
+
+# Add the clusters onto the big_cities data frame
+big_cities_clust <- big_cities %>%
+  mutate(cluster = city_clusts)
+
+# Then we plot the clusters
+big_cities_clust %>%
+  ggplot(aes(x = longitude, y = latitude)) +
+  geom_point(aes(color = cluster), alpha = 0.5)  +
+  scale_color_brewer(palette = "Set2")
+
+```
+
+c) Now run a k-means cluster where longitude, latitude, and population are all included. Set the number of clusters to be 5. Make a boxplot of the population for each cluster (and show it in your homework). What is the number of the cluster that contains the largest cities?
+
+The number of the cluster that contains the largest cities is cluster 1, color red.
+
+```{r}
+population_clusts <- big_cities %>%
+  select(population) %>% # The variable we are clustering by
+  kmeans(centers = 5) %>% # The number of clusters
+  fitted("classes") %>% # Just extract the classes for each data point
+  as.character()
+
+# Step 2: Add the clustering back to your data frame
+population_mutated <- big_cities %>%
+  mutate(cluster = population_clusts)
+
+# Step 3: Make your plot
+population_mutated %>%
+  ggplot(aes(x = longitude, y = latitude)) +
+  geom_boxplot(aes(color = cluster), alpha = 0.5)
+
+```
+
+d) Finally filter your dataset to include only cities in this largest cluster. Create a geographic map that has the outlines of each of the world countries along with points for each of the cities that belong in the most populous cluster. What interesting patterns emerge?
+
+
+We were having some difficulties combining the data sets together
+
+```{r}
+x <- big_cities %>%
+  mutate(cluster = population_clusts) 
+
+
+
+x %>%  filter (cluster == "5") %>% ggplot(aes(x = longitude, y = population)) +
+  geom_boxplot(aes(color = cluster), alpha = 0.5)
+
+
+world <- map_data("world") 
+ggplot() + geom_polygon(data = world, aes(x=long, y = lat, group = group), fill = NA, color = 'black') + coord_fixed(1.3)
+
+
+```
+
+
+

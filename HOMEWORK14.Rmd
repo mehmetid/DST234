@@ -1,0 +1,87 @@
+---
+title: "HOMEWORK14"
+author: "Dijone Mehmeti"
+date: "4/13/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(mosaicData)
+
+```
+
+# Problem 1
+- Explain what variables contained in this dataset
+
+This dataset contain these variables:
+- age is for the subject age at baseline, 
+- anysub is for anysub use of any substance post-detox: a factor with levels no yes
+- cesd is for Epidemiologic Studies Depression measure at baseline 
+- d1 is for the lifetime number of hospitalizations for medical problems
+- daysanysub is for day time to first use of any substance post-detox
+- dayslink is for day time to linkage to primary care
+- drugrisk is for Risk Assessment Battery drug risk scale at baseline
+- e2b is for the number of times in past 6 months entered a detox program 
+- female is when 0 for male, 1 for female
+- sex is for a factor with levels male or female
+- g1b is for experienced serious thoughts of suicide in last 30 days with a factor with levels no yes
+- homeless is for housing status with a factor with levels housed homeless
+- i1 is for average number of drinks consumed per day, in the past 30 days 
+- i2 is for maximum number of drinks  consumed per day, in the past 30 days 
+- id is for subject identifier
+- indtot is for Inventory of Drug Use Consequences total score 
+- linkstatus is for post-detox linkage to primary care (0 = no, 1 = yes)
+- link is for post-detox linkage to primary care with no or yes
+- mcs is for SF-36 Mental Component Score (measured at baseline, lower scores indicate worse status)
+- pcs is for SF-36 Physical Component Score (measured at baseline, lower scores indicate worse status)
+- pss_fr is for perceived social support by friends (measured at baseline, higher scores indicate more support)
+- racegrp is for race/ethnicity: levels black hispanic other white
+- satreat is for any BSAS substance abuse treatment at baseline: no yes
+- sexrisk is for Risk Assessment Battery sex risk score (measured at baseline)
+- substance is for primary substance of abuse: alcohol cocaine heroin
+- treat is for randomized to HELP clinic: no yes
+- hospitalizations is for lifetime number of hospitalizations for medical problems (measured at baseline)
+
+```{r}
+
+?mosaicData::HELPrct
+mosaicData::HELPrct %>% glimpse()
+
+```
+- Run the following commands and explain what the output means:
+- is.numeric() checks if it can interpreted as numbers. it outputs True for max_drinks because all the values are numbers(int) and false for treat  because the values cannot interpreted as numbers since they're strings
+
+
+```{r}
+is.numeric(mosaicData::HELPrct$treat)
+FALSE
+is.numeric(mosaicData::HELPrct$max_drinks)
+TRUE
+
+```
+- Use the HELPrct data from the mosaicData to calculate the mean of all numeric variables (be sure to exclude missing values).
+
+```{r}
+
+HELPrct.numcols%>%
+  apply(MARGIN=2, FUN = mean)
+
+
+````
+#Problem 2
+
+
+```{r}
+data_nest <- mosaicData::HELPrct %>% select(substance,age, cesd) %>%
+  group_by(substance) %>%
+  nest() 
+  
+data_nest %>% mutate(lm_fit = map(data,~lm(cesd ~ age,data=.x )), lm_summary = map(lm_fit,~broom::tidy(.x))) %>%
+  select(substance,lm_summary) %>%
+  unnest()
+
+```

@@ -1,0 +1,41 @@
+---
+title: "Miniproject 3"
+author: "Dijone Mehmeti"
+date: "March 10, 2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(ggthemes)
+
+police_data <- read_csv("https://raw.githubusercontent.com/jmzobitz/DST234Datasets/master/police_data_2021.csv")
+
+neighborhood_data <- read_csv("https://raw.githubusercontent.com/jmzobitz/DST234Datasets/master/neighborhood_data_2021.csv")
+
+
+names(police_data)
+names(neighborhood_data)
+
+```
+
+Question: What is the main incident description that the neighborhoods in Minneapolis are specified with and how frequent were those incident descriptions reported?
+
+- The main reason why I decided to ask this question was because now I need to be around Minneapolis a little bit more, and I think having the opportunity to know the safety levels of the city with data given like this is important to me. So, in general I wanted to know what is the most common crime incident that happens in Minneapolis and how many times it has been reported to the police department, but more specifically I wanted to be aware of those neighborhoods. Based on the data, the embedded code showed that the neighborhoods that were reported with the most incidents were Bancroft, Downtown West, East Phillips, Powderhorn Park and Whittier. Furthermore, the main incident description for the Bancroft neighborhood was the Automobile Theft with a 900 reported number of incidents, Downtown West had a more variety of incidents compared to the other neighborhoods with the most amount of incidents happening and the highest reported number of incidents as well. For example the Other Theft category includes a 8572 number of reported incidents and in the category of Burglary of Business the number of reported incidents was 1100. The other neighborhood called East Phillips had a 800 number of reported incidents for Automobile Theft, Powderhorn Pork a number of 800 reported incidents for Automobile Theft as well, and the Whittier neighborhood had a number of 900 reported incidents for Automobile Theft. This conclusion of data gives me a very good warning of what I should avoid but also what I should take precaution more on, such as vehicles in the parking lot for example, since I realized that one of the most common incidents happened to be Automobile Theft. 
+
+- Also I have used the regression line to see the count increase or possibly decrease of those incidents, and it resulted that the only neighborhood that experienced that change was Downtown West with both an increase and decrease of its incident descriptions. 
+
+```{r}
+
+police_data %>%
+  select(neighborhood, reportedTime, description)%>%
+  filter(reportedTime <= 1500)%>%
+  group_by(neighborhood, reportedTime, description)%>%
+  summarize(count = n())%>%
+  arrange(desc(count))%>%
+  head(15)%>%
+  inner_join(neighborhood_data, by = c("neighborhood" = "Neighborhood"))%>%
+  ggplot(aes(x = reportedTime, y = description)) + geom_bar(aes(fill = neighborhood), stat = "identity") + geom_smooth(method = "lm", se = FALSE, aes(group = count, color = count)) + facet_wrap(~ neighborhood) + theme_igray() + labs(x = "Incidents' Reported Time", y = "Description of the Incident", title = "The Incident Description and Reported Time", subtitle = "Neighborhoods in Minneapolis")
+
+```
+

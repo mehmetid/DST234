@@ -1,0 +1,47 @@
+---
+title: "Homework 4"
+author: "Dijone Mehmeti"
+date: "02/07/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup,include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,message=FALSE,warning=FALSE)
+library(mdsr)
+library(tidyverse)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+
+### 1. Exercise 3.5.2
+
+Using data from the nasaweather package, create a scatterplot between wind and pressure, with color being used to distinguish the type of storm.
+
+**Answer:**
+```{r}
+# Call in the data from the nasaweather pacakge
+# NOTE: these is additional work to be done for this problem!
+
+ggplot(data = nasaweather::storms) +
+  geom_point( aes(x=wind, y=pressure) ) 
+```
+
+### 2. Exercise 3.5.3
+```{r}
+library(mosaicData)
+ggplot(data = mosaicData)
+```
+
+
+### 3. Exercise 3.5.4
+
+### 4. Exercise 3.5.5
+
+### 5. Exercise 3.5.7
+
+### 6. Extended Example 
+(Read Section 3.3 to create a distribution of your name (Figure 3.22) or a name of your choosing)
+

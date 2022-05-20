@@ -1,0 +1,186 @@
+---
+title: "HOMEWORK13"
+author: "Dijone, Ly, Ridwan"
+date: "4/7/2022"
+output: prettydoc::html_pretty
+
+---
+
+```{r}
+
+knitr::opts_chunk$set(echo = TRUE, Message = FALSE, warning = FALSE)
+
+```
+
+```{r}
+library(tidyverse)
+library(maps)
+library(mapdata)
+library(leaflet) 
+library(leaflet.extras) 
+library(leaflet.providers)
+library(readr)
+library(sf)     
+
+
+```
+
+
+#Problem 1
+
+Read through the leaflet documentation. What interesting things did you learn / want to try out?
+
+- Use the addLegend function to add a legend. This function has several other parameters that allows you to customize the legend in various ways. You can also change the title and color opacity.
+- The two-dimensional RasterLayer objects part of the raster package can be turned into images, and then we can add them to the Leaflet maps using the addRasterImage function. Also the addRasterImage function embeds the image in the map widget, it will increase the size of the generated HTML proportionally. Often times this might cause an error. 
+- Want to try the basemaps with WMS Tiles. Also learned about how leaflet supports basemaps using map tiles which almost every interactive web maps use. To add a tile you simply type addTiles() with no argument. But, if you have custom tiles that you want to add you can pass the url as an argument to addTiles(). You can also combine tile layers
+
+
+#Problem 2
+
+Make a dynamic (leaflet) map representing at most five important locations in your life (or to you), with appropriate annotations in the popup.  Imagine this would be a type of map that is distinctly you, so feel free to modify any of the leaflet themes. As a place to get started, I might first determine the latitude and longitude of each of the locations, along with any other brief notations that you can find.  Search the leaflet documentation for cool and interesting modifications that you can make to the plot. If submitting as a group, each member needs to have at most 5 locations.
+
+add our names for the places
+```{r}
+
+gjptsh_data <- tibble(lat = c(42.6026,41.1533, 46.8182, 38.9637, 19.8563,15.8700,5.152149, 23.885942, 25.2866667,37,39.0742,60.1282),
+                    lon = c(20.9030,20.1683, 8.2275, 35.2433, 102.4955, 100.9925, 46.199616,45.079162,51.5333333,127.5, 21.8243,18.6435),
+                    place = c("Kosovo","Albania", "Switzerland", "Turkey","Laos","Thailand","Somalia","Saudi Arabia", "Qatar","South Korea", "Greece", "Sweden"),
+                    capital = c("Prishtina", "Tirana", "Bern", "Ankara", "Vientiane","Bangkok", "Muqdisho","Riyadh","Doha","Seoul","Athens", "Stockholm"),
+                    place_color = c("purple","orange", "red", "blue", "green", "yellow", "brown", "black", "pink", "white", "grey", "gold"),
+                    name = c("Dijona", "Dijona", "Dijona", "Dijona", "Ly", "Ly", "Ridwan", "Ridwan", "Ridwan", "Ridwan", "Ly", "Ly"))
+
+gjptsh_data %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng = ~lon,
+             lat = ~lat) %>%
+  addCircles(lng = ~lon,
+             lat = ~lat,
+             popup=~place,
+             radius = 120000,
+             color = ~place_color)%>%
+  addPopups(lng = ~lon,
+            lat = ~lat,
+            popup = ~place)%>%
+  addCircleMarkers(lng = ~lon,
+                   lat = ~lat,
+                   popup=~paste("Country: ", place, "</br> Capital: ", capital, "</br> Name: ", name),
+                   radius = 5)# Radius specified in meters!
+
+```
+
+#Problem 3
+
+One of the open datasets is COVID cases by geography in Minneapolis. Create a chloropleth map that incorporates the current COVID cases by neighborhoods in Minneapolis. The pop-ups for the map should include the current number of case counts (from when you downloaded the data).
+
+3) Your turn: What patterns do you notice in the towing? 
+ - The inner join takes off the gray shading on the map, which also makes it harder to recognize the border. 
+
+
+```{r}
+
+Covid_Cases_Geography <- read_csv("Covid_Cases_Geography.csv")
+
+mn_1937 <- st_read(dsn = "MNMinneapolis1937", layer = "cartodb-query")
+
+glimpse(mn_1937)
+
+mn_1937 %>%
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(weight = 1,
+              color = "white",
+              fillColor = ~holc_grade,
+              fillOpacity = 0.3,
+              popup = ~holc_id)
+
+#Your turn: Find a different color palette and incorporate it into the map.
+#Your turn: Change the basemap layer to something different.
+#Your turn: Consult the leaflet documentation to change the legend title to a meaningful context.
+
+# Define your factors of the different colors
+neighbor_pal <-colorFactor(palette = "RdGy",
+                           domain = c("A","B","C","D")
+                           )
+
+# Now we add in the code
+mn_map <- mn_1937 %>%
+  leaflet() %>%
+  addTiles() %>%
+  addPolygons(weight = 1,
+              color = "white",
+              fillColor = ~neighbor_pal(holc_grade),
+              fillOpacity = 0.6,
+              popup = ~holc_id) %>%
+  addLegend(pal = neighbor_pal,
+            values = ~holc_grade,
+            opacity = 0.6,
+            title = "Mapping Inequality in Minneapolis 1937",
+            )
+
+mn_map
+```
+
+```{r}
+# Read in the parks data
+mn_parks <- st_read(dsn = "Parks-shp", layer = "Parks")
+
+# Helpful just to see what the data frame contains
+glimpse(mn_parks)
+
+
+# Now make the leaflet map!
+mn_map %>%
+  addPolylines(data = mn_parks,
+              weight = 2,
+              color = "purple",
+              fillColor = 'purple',
+              opacity = 0.5)
+
+tows <- read_csv("snowEmergency/Snow_Emergency_Xerxes_Tows_2018.csv")
+
+glimpse(tows)
+
+tows %>%
+leaflet() %>%
+  addTiles() %>%
+  addWebGLHeatmap(lng=~Longitude, lat=~Latitude, size = 1000)
+
+glimpse(tows)
+totTows = tows %>%
+  group_by(Neighborho) %>%
+  summarize(N=n()) %>%
+  arrange(desc(N)) %>%
+  na.omit()
+
+nbhd_shp <- st_read(dsn = "Neighborhoods", layer = "Neighborhoods")
+#Neighborhoods <- read_csv("Neighborhoods.csv")
+#glimpse(Neighborhoods)
+
+tows_merged <- nbhd_shp %>%
+  left_join(totTows,by=c("BDNAME"="Neighborho"))
+
+max_tows <- max(totTows$N) # We need this to specify the largest value in our paletted.
+tow_palette <- colorNumeric(palette ="YlGnBu",
+                             domain = c(0,max_tows))  # We need to define the domain as a range of values.
+
+tows_merged %>%
+leaflet() %>%
+  addTiles() %>% 
+  addPolygons(weight=1,
+              fillOpacity = 0.7,
+              color='blue',
+              fillColor=~tow_palette(N),
+              popup=~paste(BDNAME, "</br>",N)
+              )%>%
+  addLegend(pal = tow_palette,
+            values = ~N,
+            opacity = 0.6,
+            title = "Towed Cars concentration",
+            )
+
+#Your turn: Notice to create tows_merged I used a left_join. What would happen if I used an inner_join instead? Try it out.
+#Your turn: Add a legend to this plot.
+#Your turn: What patterns do you notice in the towing? - The inner join takes off the gray shading on the map, which also makes it harder to recognize the border. 
+
+```

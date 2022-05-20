@@ -1,0 +1,98 @@
+---
+title: "MINI-PROJECT 5"
+author: "Dijone Mehmeti"
+date: "4/26/2022"
+output: prettydoc::html_pretty
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(tidyverse)
+library(maps)
+library(mapdata)
+library(leaflet) 
+library(leaflet.extras) 
+library(leaflet.providers)
+library(ggthemes)
+
+```
+
+Below I have included my Mini-Project 3, the initial one
+
+```{r}
+
+police_data <- read_csv("https://raw.githubusercontent.com/jmzobitz/DST234Datasets/master/police_data_2021.csv")
+
+neighborhood_data <- read_csv("https://raw.githubusercontent.com/jmzobitz/DST234Datasets/master/neighborhood_data_2021.csv")
+
+#names(police_data)
+#names(neighborhood_data)
+
+police_data %>%
+  select(neighborhood, reportedTime, description)%>%
+  filter(reportedTime <= 1500)%>%
+  group_by(neighborhood, reportedTime, description)%>%
+  summarize(count = n())%>%
+  arrange(desc(count))%>%
+  head(15)%>%
+  inner_join(neighborhood_data, by = c("neighborhood" = "Neighborhood"))%>%
+  ggplot(aes(x = reportedTime, y = description)) + geom_bar(aes(fill = neighborhood), stat = "identity") + geom_smooth(method = "lm", se = FALSE, aes(group = count, color = count)) + facet_wrap(~ neighborhood) + theme_igray() + labs(x = "Incidents' Reported Time", y = "Description of the Incident", title = "The Incident Description and Reported Time", subtitle = "Neighborhoods in Minneapolis")
+
+```
+
+Provide an explanation of the reasons for revising your data graphic.
+
+- The reason why I wanted to revise my Mini-Project 3 is because I think that project would match perfectly with the map stuff we have learned after. The project contained information about the neighborhoods in Minneapolis and about the crime rates, the type of crimes and I thought I could make the project look different if I incorporated maps into it. I wanted to use the leaflet properties we learned with the circles, markers, and other pop-up features to include that other information about the neighborhoods such as the total population, the incident description and the reported Time. One variable I didn't include is the count because I don't think it would make a difference or provide any important information when shown on the map. I still provided the table I got from the Mini-Project 3 with the inner join of the police and neighborhood data to show where I got the information that is shown about the reported crimes, population and so on. However, the actual map is separate from the table since I wanted to separate what I actually revised and what I used from the previous project. I hope that is what you were looking for, and I enjoyed working with maps a lot. 
+
+```{r}
+
+police_data %>%
+  select(neighborhood, reportedTime, description)%>%
+  filter(reportedTime <= 1500)%>%
+  group_by(neighborhood, reportedTime, description)%>%
+  summarize(count = n())%>%
+  arrange(desc(count))%>%
+  head(15)%>%
+  inner_join(neighborhood_data, by = c("neighborhood" = "Neighborhood"))
+
+```
+addPopups(lng = ~lon,
+            lat = ~lat,
+            popup = ~place)
+            
+            lng = ~lon,
+                   lat = ~lat,
+
+```{r}
+
+msp_data <- tibble(lat = c( 44.9281, 44.9742, 44.9604, 44.9555, 44.9398),
+                   lon = c( -93.2505,-93.2733, -93.2486, -93.2797, -93.2533),
+                   place = c("Bancroft","Downtown West", "East Phillips", "Whittier", "Powderhorn Park"),
+                   description = c("Automobile Theft","Other Theft, Burglary of Business", "Automobile Theft", "Automobile Theft", "Automobile Theft"),
+                   reportedTime = c("900", "8572, 1100", "800", "900", "800"),
+                   totalPopulation = c("3523", "8591", "4656", "14115", "9858"),
+                   place_color = c("orange", "red", "blue", "green", "yellow"))
+
+
+msp_data %>%
+  leaflet() %>%
+  addTiles() %>%
+  addMarkers(lng = ~lon,
+             lat = ~lat) %>%
+  addCircles(lng = ~lon,
+             lat = ~lat,
+             popup=~place,
+             radius = 500,
+             color = ~place_color)%>%
+  addCircleMarkers(
+                   popup=~paste("Neighborhood: ", place, "</br> Incidents: ", description, "</br> Reported Time: ", reportedTime, "</br> Total Population: ", totalPopulation),
+                   radius = 5)
+
+```
+
+
+

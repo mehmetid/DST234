@@ -1,0 +1,134 @@
+---
+title: "ShapefileActivity"
+author: "Dijone Mehmeti"
+date: "4/4/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(sf)     # R wrapper around GDAL/OGR
+library(leaflet)    # for fortifying shapefiles
+library(leaflet.extras)
+library(leaflet.providers)
+
+```
+
+```{r}
+
+mn_1937 <- st_read(dsn = "MNMinneapolis1937", layer = "cartodb-query")
+
+glimpse(mn_1937)
+
+```
+```{r}
+# Now make the leaflet map!
+mn_1937 %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addPolygons(weight = 1,
+              color = "white",
+              fillColor = ~holc_grade,
+              fillOpacity = 0.3,
+              popup = ~holc_id)
+
+```
+
+
+```{r}
+# Define your factors of the different colors
+neighbor_pal <-colorFactor(palette = "RdYlBu", 
+                           domain = c("A","B","C","D")
+                           )
+
+# Now we add in the code
+mn_map <- mn_1937 %>% 
+  leaflet() %>% 
+  addTiles() %>% 
+  addPolygons(weight = 1,
+              color = "white",
+              fillColor = ~neighbor_pal(holc_grade),
+              fillOpacity = 0.6,
+              popup = ~holc_id) %>%
+  addLegend(pal = neighbor_pal,
+            values = ~holc_grade,
+            opacity = 0.6)
+
+mn_map
+```
+
+```{r}
+# Read in the parks data
+mn_parks <- st_read(dsn = "Parks-shp", layer = "Parks")
+
+# Helpful just to see what the data frame contains
+glimpse(mn_parks)
+
+
+# Now make the leaflet map!
+mn_map %>%
+  addPolylines(data = mn_parks,
+              weight = 2,
+              color = "purple",
+              fillColor = 'purple',
+              opacity = 0.5)
+```
+
+```{r}
+tows <- read.csv(file = "snowEmergency/Snow_Emergency_Xerxes_Tows_2018.csv")
+
+glimpse(tows)
+
+```
+
+```{r}
+tows %>%
+leaflet() %>% 
+  addTiles() %>%
+  addWebGLHeatmap(lng=~Longitude, lat=~Latitude, size = 1000)
+
+```
+
+```{r}
+glimpse(tows)
+totTows = tows %>% 
+  group_by(Neighborho) %>% 
+  summarize(N=n()) %>% 
+  arrange(desc(N)) %>% 
+  na.omit()
+```
+
+```{r}
+# I've already prepared the shapefile in our folder - remember to transform it to google coordinates
+
+nbhd_shp <- st_read(dsn = "Neighborhoods", layer = "Neighborhoods")
+
+glimpse(nbhd_shp)
+
+```
+
+```{r}
+tows_merged <- nbhd_shp %>%
+  left_join(totTows,by=c("BDNAME"="Neighborho"))
+```
+
+```{r}
+
+max_tows <- max(totTows$N) # We need this to specify the largest value in our paletted.
+tow_palette <- colorNumeric(palette ="YlGnBu",
+                             domain = c(0,max_tows))  # We need to define the domain as a range of values.
+
+tows_merged %>%
+leaflet() %>%
+  addTiles() %>% 
+  addPolygons(weight=1,
+              fillOpacity = 0.7,
+              color='blue',
+              fillColor=~tow_palette(N),
+              popup=~paste(BDNAME, "</br>",N)
+              )
+```
+
+Your turn: Notice to create tows_merged I used a left_join. What would happen if I used an inner_join instead? Try it out.
+Your turn: Add a legend to this plot.
+Your turn: What patterns do you notice in the towing?

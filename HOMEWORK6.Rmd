@@ -1,0 +1,180 @@
+---
+title: "Homework 6"
+author: "Dijone Mehmeti"
+date: "02/15/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup}
+knitr::opts_chunk$set(echo=TRUE)
+library(mdsr)
+library(tidyverse)
+library(Lahman)
+library(nycflights13)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+## Problem 3
+
+What is the problem with this pipeline?
+The problem with the pipeline is that the filter function should come before the summarize function, because before you summarize them, you have to filter them first. After this correction the code ran well. 
+```{r}
+library(tidyverse)
+mtcars %>%
+  group_by(cyl) %>%
+  filter(am == 1) %>%
+  summarize(avg_mpg = mean(mpg))
+```
+
+## Problem 5
+
+Inspired by: https:// rstudio-pubs-static.s3.amazonaws.com/68588_27c1eb3b7ea044e1be4ed864b34508e3.html
+
+What is the real-world meaning of the variable N in the result set?
+The real-world meaning of the variable N in the result set, is that N is the total number of roads, N is the number of cylinders, and N is the number of how big each cycle group is. 
+
+```{r}
+mtcars %>%
+  group_by(cyl) %>%
+  summarize(N = n(), avg_mpg = mean(mpg))
+
+```
+
+## Problem 8
+
+Inspired by: https://bleacherreport.com/articles/1641924-what-is-baseballs-more-powerful-league-the-al-or-nl, by RPubs by rStudio, class work, and collaborated with Ridwan and Ly. 
+
+Using the Teams data frame in the Lahman package:
+
+Plot SLG versus yearID since 1954 conditioned by league (American vs. National, see lgID). Slugging percentage is total bases divided by at-bats. To compute total bases, you get 1 for a single, 2 for a double, 3 for a triple, and 4 for a home run.
+
+Is slugging percentage typically higher in the American League (AL) or the National League (NL)? Can you think of why this might be the case?
+The slugging percentage is higher in the American League (AL), and I think that one of the reasons why this happens is because the American League holds more power. I'm not a big fan of sports but by the research that I did, seems like most of the power resides in the American League.  
+
+```{r}
+#part a
+my_teams <- 
+  mutate(Teams, BA = H/AB, SLG = (H + 2*X2B + 3*X3B + 4*HR)/AB) %>% 
+  filter(yearID >= 1954)
+
+ggplot(data = my_teams, aes(x = yearID, y = SLG)) + 
+  geom_point() + 
+  geom_smooth(color = "orange") + 
+  ggtitle("American vs. National")
+  labs( y = "Year since 1954", x = "Slugging Percentage")
+
+#part b
+AL <- 
+  my_teams %>%
+  filter(yearID >= 1954 & lgID == "AL")
+NL <- 
+  my_teams %>%
+  filter(yearID >= 1954 & lgID == "NL")
+
+ggplot(AL, aes(x = yearID, y = SLG)) + 
+  geom_point(size = 1) + 
+  geom_point(data = NL, color = "purple", size = 1) +
+  geom_smooth(data = AL, se = FALSE, aes(color = "AL")) +
+  geom_smooth(data = NL, se = FALSE, aes(color = "NL")) + 
+  labs(title = "Average Sluggling Percentage by Each League", subtitle = "From 1954 to Present", y = "Years since 1954", x = "Slugging Percentage")+ ggtitle("Is slugging percentage typically higher in the American League or the National League?")
+  
+
+```
+
+
+## Problem 9
+
+
+For this exercise one way to tell if a flight is canceled is if the dep_time is "NA". I would first group the flights by month, and then summarize each month by how many flights were canceled divided by the number of flights in that month.  The code sum(is.na(X)) will add up how many values in a column X are listed as "NA".
+
+Use the nycflights13 package and the flights data frame to answer the following questions: 
+
+What month had the highest proportion of cancelled flights? February had the highest proportion of cancelled flights.
+
+What month had the lowest? October and September had the lowest proportion of cancelled flights. 
+
+Interpret any seasonal patterns. - The idea of the table is to show us that we have more cancelled flights during winter or when the weather is colder, rather than in the summer when the weather is warmer. Especially the months of September and October have more of a balanced temperature which is more convenient for people to travel. 
+
+Inspired by class work, collaborated with Ly and Ridwan
+
+```{r}
+
+x <- flights %>%
+  group_by(month) %>%
+  summarize(L = sum(is.na(dep_time) / (sum(!is.na(dep_time)) + sum(is.na(dep_time)))))
+x %>%
+  arrange(desc(L))
+
+```
+
+## Problem 11
+
+Inspired by: https://rstudio-pubs-static.s3.amazonaws.com/423012_8248dcfbd92647a19ed3c89ce4ee3807.html, collaborated with Ridwan and Ly
+
+Prior to starting this problem, first diagram what is asked in this question before starting the data wrangling.  You will need to make a plot to identify the pattern between the number of inspections and the median score.Prior to starting this problem, first diagram what is asked in this question before starting the data wrangling.  You will need to make a plot to identify the pattern between the number of inspections and the median score.
+
+The Violations data set in the mdsr package contains information regarding the outcome of health inspections of restaurants in New York City. Use these data to calculate the median violation score by zip code for zip codes in Manhattan with 50 or more inspections. 
+
+What pattern do you see between the number of inspections and the median score?
+
+The pattern that I see between the number of inspections and the median score is a direct relationship almost. It seems like when the number of inspections increases, the median score increases as well, even though there are also times where it stays constant for a little while. 
+
+```{r}
+
+Violations %>%
+  select(boro, score, zipcode) %>%
+  filter(boro == "MANHATTAN") %>%
+  group_by(zipcode) %>%
+  summarise(median_score = median(score, na.rm = TRUE), totalInspections = n()) %>%
+  filter(totalInspections >= 50) %>%
+  ggplot(aes( x = totalInspections, y = median_score)) + 
+  geom_point(color = "red", size = 3) + geom_line(size = 1) + ggtitle("Median Score vs. Number of Inspections") + xlab("Number of Inspections") + ylab("Median Score")
+
+
+```
+
+## Problem 14
+
+Inspired by class work, collaborated with Ridwan and Ly
+
+For this you are asked to plot the number of flights per week over the course of the year.  To be clear, I am asking you to do this for the plane that had the greatest number of trips from NYC airports. There are some ways to approach this problem, however a simple approach is that you add a new column (e.g. “mutate”) your data frame with a new variable with a statement like this:
+
+week_of_year = lubridate::week(time_hour) 
+
+The column time_hour is a timestamp of the scheduled date and hour of the flight.  The function “week” takes that timestamp and reports which week of the year it is.  (If R throws an error when you try to use week, you may need to install and load up the package “lubridate”.)
+
+Use the nycflights13 package and the flights data frame to answer the following question: 
+
+What plane (specified by the tailnum variable) traveled the most times from New York City airports in 2013? 
+
+The plane that travaled the most times from New York City airports in 2013 specified by tailnum was: N725MQ
+Plot the number of trips per week over the year.
+
+
+```{r}
+flights %>% 
+  mutate(week_of_year = lubridate::week(time_hour)) %>%
+  filter(!is.na(tailnum), year >= 2013) %>%
+  group_by(tailnum) %>%
+  summarize(S = n()) %>%
+  arrange(desc(S)) %>%
+  top_n(1)
+
+flights %>% 
+  mutate(week_of_year = lubridate::week(time_hour)) %>%
+  filter(tailnum == "N725MQ") %>%
+  group_by(week_of_year) %>%
+  summarize(L = n()) %>%
+  ggplot(aes(x = week_of_year , y = L)) + 
+  geom_point(color = "purple", size = 4) + 
+  geom_line() +
+  labs(x = "Week of the year", y = "Counts", title = "Trips per week of N725MQ in 2013 to New York City")
+  
+  
+ 
+  
+  
+```

@@ -1,0 +1,158 @@
+---
+title: "HOMEWORK 3"
+author: "Dijone Mehmeti"
+date: "01/31/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup}
+knitr::opts_chunk$set(echo=TRUE)
+library(mdsr)
+library(tidyverse)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+# Section titles are here (you need one hashtags)
+## Problem 1
+
+## Submitted as a document file
+
+Type your response here, embedding code chunks
+```{r}
+glimpse(mpg)
+```
+
+## Problem 2
+Type your response here
+#Submitted in a Document file
+
+## Problem 3
+# 5 What’s wrong with this statement?
+help(NHANES, package <- "NHANES")
+# The problem with the statement is that the title and the package name inside the help command need to be different
+
+# 6 Consult the documentation for CPS85 in the mosaicData package to determine the meaning of CPS.
+# The meaning of CPS is the Current Population Survey (CPS) that is used to supplement census information between census years. 
+
+#9 A user has typed the following commands into the RStudio console.
+a <- c(10, 15)
+b <- c(TRUE, FALSE)
+c <- c("happy", "sad")
+
+# What do each of the following commands return? Describe the class of the object as well as its value.
+
+#data.frame(a, b, c) # string values, Boolean
+   a     b     c
+1 10  TRUE happy
+2 15 FALSE   sad
+
+#cbind(a, b) ## combine columns, integer
+      a b
+[1,] 10 1
+[2,] 15 0
+
+#rbind(a, b) ## combine rows, integer
+  [,1] [,2]
+a   10   15
+b    1    0
+
+#cbind(a, b, c) ## combine columns, integer, string, boolean values
+
+     a    b       c      
+[1,] "10" "TRUE"  "happy"
+[2,] "15" "FALSE" "sad" 
+
+#list(a, b, c)[[2]] ## put them into a list, boolean
+
+[1]  TRUE FALSE
+
+#Problem 4 
+
+## YOUR TURN
+Using the `mpg` data frame with `x=displ, y=hwy`, generate the following ggplots (each item is a separate plot).  You can always see the first few rows of the data frame by typing `glimpse(mpg)` at the console (as we did above), or `?mpg` for the documentation on the particular data frame.  I've included the started code from earlier that you need to then modify.
+
+
+a. A plot that uses color to distinguish the class of the car.
+```{r}
+ggplot(data = mpg ) + 
+  geom_point( aes(x=displ, y=hwy, color = class)) 
+```
+b. A plot that makes all the points red.
+```{r}
+ 
+ggplot(data = mpg ) + 
+  geom_point( aes(x=displ, y=hwy), color = "red")
+```
+c. A plot that makes all the shapes to be filled triangles.
+(*What would it be if the shape was just a triangle with a border?*)
+```{r}
+```
+
+
+```{r}
+ggplot(data = mpg,aes(x=displ, y=hwy)) +
+  geom_point(shape = 17)
+```
+
+d. A plot that makes all the points to be 3 mm in size (that is you will need `size=3`).
+```{r}
+ggplot(data = mpg ) + 
+  geom_point( aes(x=displ, y=hwy, size = 3)) 
+```
+
+e. A plot that makes all the points red, makes all the shapes filled triangles, and the size to be three.
+```{r}
+ggplot(data = mpg ) + 
+  geom_point( aes(x=displ, y=hwy), color = "red", shape = 17, size = 3)
+```
+
+
+f. A plot that uses color to distinguish the class of the car, and makes all of the points filled squares.
+```{r}
+ggplot(data = mpg ) + 
+  geom_point( aes(x=displ, y=hwy, color = class), shape = 15)
+```
+
+g. A plot that uses shapes to distinguish the class of the car, and color to distinguish the fuel type.
+```{r}
+ggplot(data = mpg ) + 
+  geom_point(aes(x=displ, y=hwy, shape = class, color = hwy))
+```
+
+h. One other aesthetic for `geom_point` is `alpha`, which is transparency on a scale from 0 to 1. Can you make a ggplot that from the `mpg` data frame that incorporates the aesthetics of `alpha, color, shape, size`?
+```{r}
+ggplot(data = mpg ) + 
+  geom_point( aes(x=displ, y=hwy, alpha = class), color = "blue", shape = 17, size = 2) 
+```
+
+
+
+# Problem 5
+
+
+
+```{r}
+
+library(mdsr)
+library(tidyverse)
+
+memorization_data <- read_csv("C:/Users/dijon/Desktop/DST234/memorization_data.csv")
+
+a <- ggplot(data = memorization_data, aes(y = Round, x = Gender)) +
+  geom_boxplot(outlier.color  = "red", outlier.shape = 17, outlier.size = 1.5)
+
+b <- ggplot(data = memorization_data) + 
+  geom_point(aes(x = Gender, y = Round), shape = 17, color = "blue", size = 2) +
+  facet_grid( Gender ~ Round )
+  
+c <- ggplot(data = memorization_data, aes(y = Words, x = Languages)) + 
+  geom_point(aes(x = Languages, y = Words), shape = 15, color = "red", size = 1.5) +
+facet_grid(Languages ~ Words )
+
+```
+
+
+```

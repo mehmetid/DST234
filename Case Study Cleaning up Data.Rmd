@@ -1,0 +1,106 @@
+---
+title: "Case Study Cleaning up a Data Set"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+3. 
+
+```{r}
+who1 <- who %>% 
+  pivot_longer(cols = new_sp_m014:newrel_f65, names_to = "code", values_to = "cases", values_drop_na = TRUE)
+glimpse(who1)
+
+
+```
+
+4. 
+
+```{r}
+
+who1 %>% 
+  count(code)
+
+```
+
+5.
+
+```{r}
+
+who2 <- who1 %>% 
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel"))
+glimpse(who2)
+
+```
+
+6.
+
+```{r}
+
+who3 <- who2 %>% 
+  separate(code, c("new", "type", "sexage"), sep = "_")
+glimpse(who3)
+
+
+who3 %>% 
+  count(new)
+
+```
+
+7.
+
+```{r}
+who4 <- who3 %>% 
+  select(-new, -iso2, -iso3)
+
+```
+
+8.
+
+```{r}
+
+who5 <- who4 %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+who5
+
+```
+
+9. 
+
+```{r}
+who %>%
+   pivot_longer(cols = new_sp_m014:newrel_f65, names_to = "code", values_to = "cases", values_drop_na = TRUE) %>% 
+  #mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
+  separate(code, c("new", "var", "sexage"), sep = "_") %>% 
+  select(-new, -iso2, -iso3) %>% 
+  separate(sexage, c("sex", "age"), sep = 1)
+
+```
+Exercises
+1.What happens if you neglect the mutate() step in the second line of the pipe?
+1. There is no change
+2. I claimed that iso2 and iso3 were redundant with country. Confirm this claim.
+2. TRUE
+3. Working with your partners, for each country, year, and sex compute the total number of cases of TB. Make an informative visualization of the data.
+3. 
+

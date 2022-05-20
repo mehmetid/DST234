@@ -1,0 +1,51 @@
+---
+title: "QUIZ 5"
+author: "Dijone Mehmeti"
+date: "4/6/2022"
+output: html_document
+---
+
+```{r}
+# These libraries need to be loaded
+library(tidyverse)
+library(maps)
+library(mapdata)
+
+```
+Then you will need to create a map that has the following characteristics:
+
+a) An outline of the country. Color the country boundaries to be blue.
+b) The name of each city at its location in the country (I know the map might get quite crowded.)
+c) Have the color of the text correspond to the population size.
+d) Title the map with the name of your favorite food.
+
+1. JAPAN
+
+```{r}
+world <- map_data("world")
+
+# View the names of the data frame:
+glimpse(world)
+
+# View the names of the cities:
+glimpse(world.cities)
+
+
+japan <- map_data("japan") # creates a map polygon of the USA
+glimpse(japan) 
+
+ggplot() +
+  geom_polygon(data = japan, aes(x=long, y = lat,group=group), fill = NA, color = "blue") +
+  coord_fixed(1.3)
+
+world.cities <- map_data("japan")
+glimpse(world.cities)
+# Make a map that shows the outlines of all the states
+
+ggplot() + geom_polygon(data = world.cities, aes(x=long, y = lat, group=group), color = "blue") +
+  coord_fixed(ratio = 1.3) + geom_point( aes(x = long, y = lat, color = size)) + labs(title = "Pite")
+
+
+
+
+```

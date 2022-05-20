@@ -1,0 +1,101 @@
+---
+title: "HOMEWORK10"
+author: "Dijona, Ly, Ridwan"
+date; "March 7, 2022"
+output: html_document
+---
+
+
+```{r cars}
+summary(cars)
+
+library(tidyverse)
+library(broom)
+library(mdsr)
+
+```
+
+Problem 1
+
+From Chapter 25 from R for Data Science, list 2 or 3 things you learned that you can carry forward into modeling and linear regression.
+
+The main things I have learned from this chapter are:
+
+- You can create list-columns using mutate() and vectorized functions that return a list and summarize().
+- Gapminder data summarizes the progression of countries over time, looking at statistics like life expectancy or GDP.
+- I liked the description of nested data frame thinking about it as instead of repeating an action for each variable, we want to repeat an action for each country, or a subset of rows. 
+
+Problem 2
+
+Use the mpg dataset from to reproduce this plot:
+
+```{r}
+
+mpg %>%
+  ggplot(aes(x = displ, y= hwy, color = as.factor(class))) +
+  geom_point() + geom_smooth(method = "lm", se = FALSE)
+
+```
+
+Problem 3
+
+From Question 2, use the broom package to obtain values for the slope of the different regression lines. Then create a visualization for the different slope values, adding a layer that signifies which slopes are statistically significant (p < .05 and p < .01).
+
+```{r}
+df1 <- mpg %>%
+  group_by(class) %>%
+  nest() 
+
+df1$class
+
+df1$data
+
+df1$data[[1]]
+
+df2 <- df1 %>%
+  mutate(lmfit = map(.x=data,
+                     .f=~lm(hwy~displ, data = .x)
+                     ))
+
+df3 <- df2 %>%
+  mutate(tidy_vals = map(.x=lmfit,.f=tidy)
+         )%>%glimpse()
+
+ df3 %>%
+  select(class,tidy_vals) %>%  
+  unnest(cols = c(tidy_vals))%>%filter(term == "displ")%>%
+  
+  ggplot(aes(x =class, y=estimate, fill =p.value))+geom_bar(stat = "identity")+geom_smooth(method = "lm", se = FALSE)+theme_igray()+labs(x = "Type of Car", y = "Slope Values", title = "Different Slope Values for Different Type of Car Displacements")
+
+```
+
+```{r}
+df1 <- mpg %>%
+  group_by(class) %>%
+  nest() 
+
+df1$class
+
+df1$data
+
+df1$data[[1]]
+
+df2 <- df1 %>%
+  mutate(lmfit = map(.x=data,
+                     .f=~lm(hwy~displ, data = .x)
+                     ))
+
+df3 <- df2 %>%
+  mutate(tidy_vals = map(.x=lmfit,.f=tidy)
+         )
+
+fitted_coefficients <- df3 %>%
+  select(class,tidy_vals) %>%  
+  unnest(cols = c(tidy_vals))%>%glimpse()
+
+x<-fitted_coefficients%>%filter(term == "displ", p.value < .05 & p.value < .01)%>%
+ggplot(aes(x =term, y=estimate))+geom_bar(aes(fill = class),stat = "identity", add = "jitter")+
+  geom_smooth(method = "lm", se = FALSE)
+
+
+```

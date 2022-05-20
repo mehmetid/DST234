@@ -1,0 +1,160 @@
+---
+title: "Homework 7"
+author: "Dijone, Ly, Ridwan"
+date: "02/22/22"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup}
+knitr::opts_chunk$set(echo=TRUE)
+library(mdsr)
+library(tidyverse)
+library(ggrepel)
+library(Lahman)
+library(nycflights13)
+library(maps)
+
+```
+
+```{r}
+glimpse(mpg)
+```
+
+## Problem 2
+
+Complete Exercise 5.5.1 Hint: You will need to create the statenames and statedata tibbles in your code first by copying and pasting the provided code.
+
+Create a scatterplot of illiteracy (as a percent of population) and per capita income (in U.S. dollars) with points plus labels of the two letter state abbreviations. Add a smoother. Use the ggrepel package to offset the names that overlap. What pattern do you observe? Are there any outlying observations?
+
+Answer: Illiteracy increases while income decreases. Yes LA and AK are outliers, since for LA when the per capita income increases, the percent illiterate increases as well, while for AK it's the opposite. 
+
+```{r}
+
+statenames <- tibble(names = state.name, twoletter = state.abb)
+glimpse(statenames)
+
+statedata <- tibble(
+  twoletter = state.abb,
+  names = state.name, 
+  income = state.x77[, 2], 
+  illiteracy = state.x77[, 3]
+  )
+glimpse(statedata)
+
+ ggplot(statedata, aes(y = illiteracy, x = income, label = twoletter )) + geom_point() + geom_smooth() + geom_text_repel() + labs(x = "Per Capita Income 1970($)", y = "Percent Illiterate")
+  
+```
+
+## Problem 3
+
+Complete Exercise 5.5.2 Hint: Your final step will be to arrange the dataset by batting average (BA).  However you may need to ungroup (use the command “ungroup()”) before sorting.
+
+Use the Batting, Pitching, and Master tables in the Lahman package to answer the following questions.
+
+a) Name every player in baseball history who has accumulated at least 300 home runs (HR) and at least 300 stolen bases (SB). You can find the first and last name of the player in the Master data frame. Join this to your result along with the total home runs and total bases stolen for each of these elite players.
+
+b) Similarly, name every pitcher in baseball history who has accumulated at least 300 wins (W) and at least 3,000 strikeouts (SO).
+
+c) Identify the name and year of every player who has hit at least 50 home runs in a single season. Which player had the lowest batting average in that season?
+
+- The player with the lowest batting average was Pete Alonso, alonspe01 with an average of 0.260
+
+Inspired by: class work, office hours
+
+```{r}
+#Batting
+
+Batting %>% select(HR, SB, playerID) %>%
+  group_by(playerID)%>%
+  summarize(home_run = sum(HR), stolen = sum(SB)) %>%
+  left_join(Master, by = c("playerID" = "playerID")) %>%
+  filter(home_run  >= 300 & stolen >= 300) %>%
+  mutate(name = nameFirst, last = nameLast) %>%
+  select(name, last, home_run, stolen)
+
+Pitching %>% select(W, SO, playerID) %>% 
+  group_by(playerID)%>%
+  summarize(win = sum(W), S = sum(SO)) %>%
+  left_join(Master, by = c("playerID" = "playerID")) %>%
+  filter(win  >= 300 & S >= 3000) %>%
+  mutate(name = nameFirst, last = nameLast) %>%
+  select(name, last, win, S)
+
+Batting %>% select(H, AB, playerID, yearID, HR) %>% 
+   mutate(BA = H/AB) %>%
+  group_by(playerID, BA, yearID) %>%
+  summarize(Batting_avg = mean(BA), Home_run = sum(HR)) %>%
+  left_join(Master, by = c("playerID" = "playerID")) %>%
+  filter(Home_run >= 50) %>%
+  mutate(name = nameFirst, last = nameLast) %>%
+  ungroup() %>%
+  select(playerID,name, last, yearID, Home_run, Batting_avg) %>%
+  arrange(Batting_avg)
+
+  
+
+ 
+```
+#Problem 4
+
+Use the nycflights13 package and the flights and planes tables to answer the following questions:
+
+a) What is the oldest plane (specified by the tailnum variable) that flew from New York City airports in 2013?
+
+- The oldest plane that flew from New York City airports in 2013 was N381AA.
+
+b) How many airplanes that flew from New York City are included in the planes table? 
+
+- There are 3322 airplanes that flew from New York City included in the planes table. 
+
+Inspired by: class work, https://github.com/zihaoxu/My-Gallery/blob/master/Visualization%20by%20packages/ggplot2.md
+
+4. a)
+```{r}
+
+planes%>%
+  semi_join(flights, by = "tailnum")%>%
+  arrange(year) 
+```
+4. b)
+
+```{r}
+
+planes%>%
+group_by(tailnum) %>%
+top_n(1) %>%
+semi_join(flights, by = c("tailnum" = "tailnum")) %>%
+ungroup() %>%
+summarize(N = n())
+
+```
+
+Probelm 5
+
+An event happened on June 13, 2013. Make a plot of the average delay and destinations of the flights (what you will have is two separate plots).
+Finish Task 3 in the Day 11 join activity (done in class on 2/16) - I am looking for a map of the destination delays, with informative labels on axes and titles. Also do some research into possible reasons for the flight delays on this day.
+
+Based on the research we did, there was information that on June 13, 2013 very strong storms happened where about 900 flights were cancelled and thousands were delayed. In the article it was stated that "The line of strong storms moving in the mid-Atlantic created major headaches for air travel in the region. Delays had been reported at eight of the region's — and the nation's — busiest airports. At the height of the problems, the worst delays averaged nearly three hours."
+
+Inspired by: class work, task problems, 
+https://www.usatoday.com/story/todayinthesky/2013/06/13/severe-storms-snarl-flights-across-the-east/2418761/
+
+```{r}
+
+
+flights %>%
+  filter(day == 13, month == 6) %>%
+  group_by(dest) %>%
+  summarize(N = mean(arr_delay, na.rm = TRUE)) %>%
+  inner_join(airports, by = c(dest = "faa")) %>%
+  ggplot(aes(lon, lat, color = N)) + borders("state") + geom_point() + coord_quickmap() + labs(title = "Arrival delay times for 06/13/2013 flights", x = "Longitude", y = "Latitude")
+
+flights %>%
+  filter(day == 13, month == 6) %>%
+  group_by(dest) %>%
+  summarize(N = mean(dep_delay, na.rm = TRUE)) %>%
+  inner_join(airports, by = c(dest = "faa")) %>%
+  ggplot(aes(lon, lat, color = N)) + borders("state") + geom_point() + coord_quickmap() + labs(title = "Arrival delay times for 06/13/2013 flights", x = "Longitude", y = "Latitude")
+```

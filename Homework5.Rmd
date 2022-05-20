@@ -1,0 +1,129 @@
+---
+title: "HOMEWORK 5"
+author: "Dijone Mehmeti"
+date: "02/09/2022"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r, setup}
+knitr::opts_chunk$set(echo=TRUE)
+library(mdsr)
+library(tidyverse)
+library(babynames)
+library(Lahman)
+glimpse(Teams)
+library(nycflights13)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+# Section titles are here (you need one hashtags)
+## Problem 1
+Type your response here
+
+a) Hint: Both rows and variables are missing from the original
+a) The select function will produce the result
+
+b) Hint: the nchar() function is used in the statement.
+b) The mutate function will produce the result
+
+c) Hint: Note the new column, which is constructed from n and prop.
+c) The mutate function will produce the result
+
+d) Hint: All the years are still there, but there are only 8 rows as opposed to the original 10 rows.\
+d) The summarize function will produce the result
+
+
+## Problem 2
+Type your response here:
+
+babynames %>% select(n > 100)
+- this is incorrect because, the select function does not take inequality as an input value
+
+babynames %>% select(- year)
+- the code is correct, since it gives us the year as output 
+
+babynames %>% mutate(name_length == nchar(name))
+- the correct way to write it would be name_length = nchar(name) not name_length == nchar(name)
+
+babynames %>% sex == M %>% select(-prop)
+- the correct way to write it would be filter(sex == M), so sex == M should be inside the filter function
+
+babynames %>% select(year, year, sex)
+- There should be only one year inside the select function not two. 
+
+babynames %>% group_by(n) %>% summarize(ave = mean(n))
+- the code is correct
+
+babynames %>% group_by(n > 100) %>% summarize(total = sum(n))
+- the code is correct
+
+## Problem 4
+
+Type your response here
+
+## Inspired by class work and hint given
+ 
+```{r}
+my_teams <- mutate(Teams, BA = H/AB, SLG = (H + 2*X2B + 3*X3B + 4*HR) / AB)
+
+ggplot(my_teams, aes(x = SLG, y = yearID)) +
+  geom_point() + geom_smooth()
+
+ggplot(my_teams, aes(x = BA, y = yearID)) + 
+  geom_point() + geom_smooth()
+```
+## Problem 7
+
+Type your response here
+
+## Inspired by class work and cheat sheet
+```{r}
+my_teams%>%
+select(yearID, teamID, SLG)%>% arrange(desc(SLG))%>%head(5)
+
+my_teams%>%filter(yearID %in% 1969:2022)%>%
+select(yearID, teamID, SLG)%>%
+  arrange(desc(SLG))%>%head(5)
+
+```
+## Problem 12
+
+Type your response here
+
+## Inspired by class work and textbook
+
+What is the distribution of temperature in July, 2013? Identify any important outliers in terms of the wind_speed variable.
+
+- The distribution of temperature in July 2013 seems to peak  around 70 - 80F, and the single outlier at around 100F is the first ever observation of the wind speed
+
+What is the relationship between dewp and humid?
+
+- Direct relationship, as dewp increases, humid increases
+
+What is the relationship between precip and visib?
+
+- Indirect relationship, as precip increases, visib decreases
+
+```{r}
+weather %>%
+  filter(month == 7) %>%
+  ggplot(aes(x = temp)) + geom_histogram() + 
+  labs(title = "Distribution of temperature in July 2013")
+
+```
+
+```{r}
+
+ggplot(weather, aes(x = dewp, y = humid))+
+  geom_point(size = 2) + geom_smooth(color = "yellow") + 
+  labs(title = "Relationship between Dewp vs Humid")
+```
+
+```{r}
+ggplot(weather, aes(x = precip, y = visib)) + 
+  geom_point(size = 2) + geom_smooth(color = "purple") +
+  labs(title = "Relationship between Precip vs Visib")
+```

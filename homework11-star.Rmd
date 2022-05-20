@@ -1,0 +1,62 @@
+---
+title: "Homework 11"
+author: "Dijona, Ridwan"
+date: "March 7, 2022"
+output: html_document
+---
+
+```{r, setup,include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,message=FALSE,warning=FALSE)
+library(mdsr)
+library(tidyverse)
+library(lubridate)
+library(ggthemes)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+```{r}
+
+
+msp311_data_url <-"https://github.com/jmzobitz/DST234Datasets/blob/master/msp311.Rda?raw=true"
+
+load(url(msp311_data_url))
+
+glimpse(msp311_data)
+
+```
+
+### Description of the question that you explored: 
+
+What was the most subject request that was called in? and why?
+
+### Explanation of how your data graphic addresses the question:
+
+Our data graphic shows how many services were requested, name of the service, and the reason why it was requested.
+The most frequent service request that was called in was Vehicles and Commuting with a number of 67073.The reason for the most called in service request is Traffic Control
+
+```{r}
+msp311_data%>%
+  select(REASONNAME, YEAR, SUBJECTNAME)%>%
+  group_by(REASONNAME, YEAR, SUBJECTNAME)%>%
+  summarize(count = sum(n()))%>%
+  arrange(desc(count)) %>%
+  head(10)%>%
+  ggplot(aes(x = SUBJECTNAME, y = count)) + geom_bar(aes(fill = REASONNAME), stat = "identity") + 
+  geom_smooth(method = "lm", se = FALSE, aes(group = YEAR, color = YEAR)) + labs(
+    x = " Service Request Type",
+    y = " Total Number of service request ",
+    title = "Most Frequent Requests Called In"
+
+  )+ theme_wsj(base_size = 6.7, color = "brown", base_family = "sans", title_family = "mono" )+theme(
+   plot.title = element_text(vjust = 2.5, color = "Brown", size = 15),
+   axis.title.x =  element_text(size = 13, color = "Brown",face = "bold"),
+      axis.title.y =  element_text(size = 13, color = "Brown", face = "bold"),
+
+                             )+coord_flip()
+
+  
+  #geom_bar(aes(fill = REASONNAME), stat = "identity") 
+  #geom_point(aes(color = REASONNAME))
+  
+```

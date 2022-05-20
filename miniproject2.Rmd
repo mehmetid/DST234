@@ -1,0 +1,36 @@
+---
+title: "Miniproject 1: Data Science Comes to the Olympics"
+author: "Dijone Mehmeti"
+date: "February 16, 2022"
+output: html_document
+---
+
+
+```{r, setup,include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,message=FALSE,warning=FALSE)
+library(mdsr)
+library(tidyverse)
+#  tidy=FALSE,     # display code as typed
+#  size="small")   # slightly smaller font for code
+```
+
+
+
+The first step is to load the data in your workspace.
+```{r}
+
+library(tidyverse)
+library(mdsr)
+
+# PRELIMINARY STEPS:
+# 1. Download the file Miniproject 2 data to your R workspace. This will be a file called "athlete_events.csv".
+# 2. Import in the file into your workspace, using the following code:
+olympic_data <- read_csv("athlete_events.csv")
+
+# NOTE: you may need to adjust this somewhat depending on where the file is located on your computer.
+
+# Once you have the data in your workspace then glimpse it
+glimpse(olympic_data)
+
+```
+
